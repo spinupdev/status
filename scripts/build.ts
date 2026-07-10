@@ -7,6 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const DATA_DIR = path.join(ROOT, "data");
 const DOCS_DIR = path.join(ROOT, "docs");
+const CUSTOM_DOMAIN = "status.dvito.cloud";
 const CONFIG_PATH = path.join(ROOT, "config", "services.json");
 
 async function readJson<T>(file: string, fallback: T): Promise<T> {
@@ -395,7 +396,7 @@ async function main(): Promise<void> {
       ${LOGO_SVG}
       <span class="brand-name">Zeish <span class="gradient-text">Status</span></span>
     </div>
-    <a class="repo-link" href="https://github.com/spinupdev/status-page">Source</a>
+    <a class="repo-link" href="https://github.com/spinupdev/status">Source</a>
   </header>
 
   <section class="banner ${overallClass}">
@@ -427,6 +428,8 @@ ${productSections}
   await mkdir(DOCS_DIR, { recursive: true });
   await writeFile(path.join(DOCS_DIR, "index.html"), html);
   await writeFile(path.join(DOCS_DIR, ".nojekyll"), "");
+  // Regenerated every build so the custom domain survives docs/ being rebuilt from scratch each run.
+  await writeFile(path.join(DOCS_DIR, "CNAME"), CUSTOM_DOMAIN + "\n");
 }
 
 main().catch((err) => {

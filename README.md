@@ -32,6 +32,20 @@ GitHub Pages just needs to serve `/docs` — no separate deploy step.
 
 Settings → Pages → Source: **Deploy from a branch** → Branch: `main`, folder: `/docs`.
 
+Custom domain: `status.dvito.cloud`. `scripts/build.ts` writes `docs/CNAME`
+on every build (it has to — `docs/` is regenerated from scratch each run,
+so the CNAME file would otherwise get wiped the first time the workflow
+commits). In Cloudflare DNS, add:
+
+| Type  | Name     | Target                | Proxy status |
+|-------|----------|------------------------|--------------|
+| CNAME | `status` | `spinupdev.github.io` | DNS only (grey cloud) |
+
+Keep it DNS-only until GitHub finishes issuing the HTTPS certificate for
+the domain (Settings → Pages will show "DNS check successful" then an
+"Enforce HTTPS" checkbox) — Cloudflare's proxy can interfere with that
+initial validation. Safe to switch to proxied afterwards if you want.
+
 ## Local usage
 
 ```bash

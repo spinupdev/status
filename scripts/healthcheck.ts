@@ -34,7 +34,7 @@ async function checkService(service: Service): Promise<CheckResult> {
       method: "GET",
       redirect: "follow",
       signal: controller.signal,
-      headers: { "User-Agent": "zeish-status-page/1.0" },
+      headers: { "User-Agent": "zeish-status/1.0" },
     });
     clearTimeout(timer);
     // Any response under 500 means the host answered — treat as up.
