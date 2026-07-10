@@ -1,1 +1,1 @@
-{"t":"2026-07-10T20:20:38.314Z","results":{"api-edge":{"ok":false,"status":530,"ms":88},"arin":{"ok":false,"status":530,"ms":24},"zeish":{"ok":true,"status":200,"ms":31}}}
+{"t":"2026-07-10T20:21:34.609Z","results":{"api-edge":{"ok":true,"status":404,"ms":521},"arin":{"ok":false,"status":500,"ms":757},"zeish":{"ok":true,"status":200,"ms":26}}}
