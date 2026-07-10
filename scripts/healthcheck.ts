@@ -1,7 +1,7 @@
-#!/usr/bin/env node
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import type { Service, Ping, DailyEntry, Incident, StateMap, CheckResult, LastCheck } from "./types.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -12,20 +12,20 @@ const TIMEOUT_MS = 10_000;
 const MAX_PINGS = 2880; // ~2 days at 1 check/min
 const MAX_DAILY = 90; // days of rollup history kept
 
-async function readJson(file, fallback) {
+async function readJson<T>(file: string, fallback: T): Promise<T> {
   try {
-    return JSON.parse(await readFile(file, "utf8"));
+    return JSON.parse(await readFile(file, "utf8")) as T;
   } catch {
     return fallback;
   }
 }
 
-async function writeJson(file, value) {
+async function writeJson(file: string, value: unknown): Promise<void> {
   await mkdir(path.dirname(file), { recursive: true });
   await writeFile(file, JSON.stringify(value));
 }
 
-async function checkService(service) {
+async function checkService(service: Service): Promise<CheckResult> {
   const start = performance.now();
   try {
     const controller = new AbortController();
@@ -40,25 +40,26 @@ async function checkService(service) {
     // Any response under 500 means the host answered — treat as up.
     return { ok: res.status < 500, status: res.status, ms: Math.round(performance.now() - start) };
   } catch (err) {
-    return { ok: false, status: 0, ms: Math.round(performance.now() - start), error: String(err.message || err) };
+    const message = err instanceof Error ? err.message : String(err);
+    return { ok: false, status: 0, ms: Math.round(performance.now() - start), error: message };
   }
 }
 
-function todayUTC() {
+function todayUTC(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-async function updateServiceData(service, result, now) {
+async function updateServiceData(service: Service, result: CheckResult, now: string): Promise<void> {
   const dir = path.join(DATA_DIR, service.slug);
   const pingsFile = path.join(dir, "pings.json");
   const dailyFile = path.join(dir, "daily.json");
 
-  const pings = await readJson(pingsFile, []);
+  const pings = await readJson<Ping[]>(pingsFile, []);
   pings.push({ t: now, ok: result.ok, ms: result.ms, status: result.status });
   while (pings.length > MAX_PINGS) pings.shift();
   await writeJson(pingsFile, pings);
 
-  const daily = await readJson(dailyFile, []);
+  const daily = await readJson<DailyEntry[]>(dailyFile, []);
   const date = todayUTC();
   let entry = daily.find((d) => d.date === date);
   if (!entry) {
@@ -72,9 +73,9 @@ async function updateServiceData(service, result, now) {
   await writeJson(dailyFile, daily);
 }
 
-async function updateIncidents(service, result, now, state) {
+async function updateIncidents(service: Service, result: CheckResult, now: string, state: StateMap): Promise<void> {
   const incidentsFile = path.join(DATA_DIR, "incidents.json");
-  const incidents = await readJson(incidentsFile, []);
+  const incidents = await readJson<Incident[]>(incidentsFile, []);
   const prev = state[service.slug];
   const wasUp = prev ? prev.status === "up" : true;
 
@@ -92,13 +93,13 @@ async function updateIncidents(service, result, now, state) {
   await writeJson(incidentsFile, incidents);
 }
 
-async function main() {
-  const services = await readJson(CONFIG_PATH, []);
+async function main(): Promise<void> {
+  const services = await readJson<Service[]>(CONFIG_PATH, []);
   const now = new Date().toISOString();
   const statePath = path.join(DATA_DIR, "state.json");
-  const state = await readJson(statePath, {});
+  const state = await readJson<StateMap>(statePath, {});
 
-  const results = {};
+  const results: LastCheck["results"] = {};
   for (const service of services) {
     const result = await checkService(service);
     results[service.slug] = result;
@@ -108,7 +109,7 @@ async function main() {
   }
 
   await writeJson(statePath, state);
-  await writeJson(path.join(DATA_DIR, "last-check.json"), { t: now, results });
+  await writeJson(path.join(DATA_DIR, "last-check.json"), { t: now, results } satisfies LastCheck);
 }
 
 main().catch((err) => {

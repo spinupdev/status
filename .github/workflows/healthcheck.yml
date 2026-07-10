@@ -22,7 +22,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 24+ runs .ts files directly (native type-stripping, no ts-node/tsx needed)
+          node-version: 24
 
       - name: Run checks every minute, 5 times, committing after each
         run: |
@@ -32,8 +33,8 @@ jobs:
 
           for i in 1 2 3 4 5; do
             echo "::group::Check $i/5"
-            node scripts/healthcheck.mjs
-            node scripts/build.mjs
+            node scripts/healthcheck.ts
+            node scripts/build.ts
             echo "::endgroup::"
 
             git add data docs

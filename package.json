@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "check": "node scripts/healthcheck.mjs",
-    "build": "node scripts/build.mjs"
+    "check": "node scripts/healthcheck.ts",
+    "build": "node scripts/build.ts"
   }
 }

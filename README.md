@@ -6,17 +6,24 @@ the results, and GitHub Pages serving the generated page.
 
 ## How it works
 
-- [`config/services.json`](config/services.json) lists the monitored endpoints.
-- [`scripts/healthcheck.mjs`](scripts/healthcheck.mjs) pings each one, appends
+- [`config/services.json`](config/services.json) lists the monitored
+  endpoints, each tagged with a `product` (`zeish` / `arin`) and `kind`
+  (`frontend` / `backend`). The page groups cards by product and has
+  client-side filter pills to show just one product at a time.
+- [`scripts/healthcheck.ts`](scripts/healthcheck.ts) pings each one, appends
   the result to `data/<slug>/pings.json` (rolling ~2 day window) and
   `data/<slug>/daily.json` (90-day uptime rollup), and opens/closes entries
   in `data/incidents.json` when a service's status flips.
-- [`scripts/build.mjs`](scripts/build.mjs) renders `data/` into a static
+- [`scripts/build.ts`](scripts/build.ts) renders `data/` into a static
   `docs/index.html`, styled to match [zeish.dev](../website)'s dark theme.
 - [`.github/workflows/healthcheck.yml`](.github/workflows/healthcheck.yml)
   runs on GitHub's shortest cron interval (5 minutes) but loops 5 times
   internally with a 60s sleep, committing after each pass — so checks land
   roughly once a minute even though the scheduler can't trigger that often.
+
+Scripts are plain `.ts` files run directly with `node` — Node 24 strips
+TypeScript types natively (no `ts-node`/`tsx`, no build step, no extra
+dependencies).
 
 Everything (data + the built page) lives in git history on `main`, so
 GitHub Pages just needs to serve `/docs` — no separate deploy step.
@@ -40,3 +47,6 @@ npm run build   # regenerate docs/index.html from the current data/
 - Repo must stay **public** for unlimited free GitHub Actions minutes; a
   private repo would burn through the 2,000 free minutes/month in a few days
   at this check frequency.
+- Zeish Backend (`api-edge.dvito.cloud`) and Arin Frontend
+  (`arin.dvito.cloud`) share the same origin host, so they tend to go down
+  together — that's expected, not a bug in the checker.
