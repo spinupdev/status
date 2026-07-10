@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zeish Status</title>
+<meta name="description" content="Live status and uptime history for Zeish services.">
+<style>
+:root {
+  --background: #000000;
+  --foreground: #f5f5f5;
+  --card: #0a0a0a;
+  --border: rgba(255, 255, 255, 0.08);
+  --muted: #222222;
+  --muted-foreground: #888888;
+  --ok: #00e5a0;
+  --warn: #facc15;
+  --down: #fb7185;
+  --radius: 1.25rem;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background-color: var(--background);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 229, 160, 0.08), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(0, 229, 160, 0.03), transparent 50%);
+  color: var(--foreground);
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 5rem;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+.brand { display: flex; align-items: center; gap: 0.75rem; }
+.logo { width: 2.25rem; height: 2.25rem; }
+.brand-name { font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
+.gradient-text {
+  display: inline-block;
+  color: transparent;
+  background: linear-gradient(90deg, #00e5a0 0%, #4bf6c6 25%, #22d3ee 50%, #60a5fa 75%, #00e5a0 100%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 4s linear infinite;
+}
+@keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.repo-link {
+  color: var(--muted-foreground);
+  text-decoration: none;
+  font-size: 0.875rem;
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+}
+.repo-link:hover { color: var(--foreground); border-color: rgba(255,255,255,0.2); }
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--foreground) 2%, transparent);
+  font-weight: 600;
+  margin-bottom: 2rem;
+}
+.banner.up { border-color: rgba(0, 229, 160, 0.25); box-shadow: 0 0 44px rgba(0, 229, 160, 0.06), inset 0 1px 0 rgba(0, 229, 160, 0.1); }
+.banner.down { border-color: rgba(251, 113, 133, 0.3); }
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.dot.up { background: var(--ok); box-shadow: 0 0 8px rgba(0, 229, 160, 0.7); }
+.dot.down { background: var(--down); box-shadow: 0 0 8px rgba(251, 113, 133, 0.7); }
+.dot.pending { background: var(--muted-foreground); }
+.dot.live { animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+.cards { display: flex; flex-direction: column; gap: 0.875rem; margin-bottom: 3rem; }
+.card {
+  background: color-mix(in srgb, var(--foreground) 2%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+  backdrop-filter: blur(8px);
+}
+.card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
+.card-title { display: flex; align-items: center; gap: 0.55rem; }
+.name { font-weight: 600; font-size: 0.95rem; }
+.status-label { font-size: 0.8rem; font-weight: 600; }
+.status-label.up { color: var(--ok); }
+.status-label.down { color: var(--down); }
+.status-label.pending { color: var(--muted-foreground); }
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  font-family: "JetBrains Mono", monospace;
+  margin-bottom: 0.75rem;
+}
+.bars { display: flex; gap: 2px; overflow: hidden; }
+.bar { flex: 1; min-width: 2px; height: 26px; border-radius: 2px; }
+
+.incidents-section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; letter-spacing: -0.02em; }
+.incidents { display: flex; flex-direction: column; gap: 0.75rem; }
+.incident {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--foreground) 2%, transparent);
+}
+.incident .dot { margin-top: 0.3rem; }
+.incident-title { font-weight: 600; font-size: 0.875rem; }
+.incident-time { color: var(--muted-foreground); font-size: 0.8rem; font-family: "JetBrains Mono", monospace; margin-top: 0.2rem; }
+.empty { color: var(--muted-foreground); font-size: 0.875rem; }
+
+.footer {
+  margin-top: 3rem;
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-family: "JetBrains Mono", monospace;
+  border-top: 1px solid var(--border);
+  padding-top: 1.25rem;
+}
+@media (max-width: 480px) {
+  .footer { flex-direction: column; gap: 0.35rem; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header class="header">
+    <div class="brand">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo">
+  <rect width="64" height="64" rx="18" fill="url(#logo-bg)" />
+  <rect x="6" y="6" width="52" height="52" rx="12" fill="url(#logo-panel)" stroke="url(#logo-stroke)" stroke-width="1.5" />
+  <path d="M18 19H46L28 32H46V45H18L36 32H18V19Z" fill="url(#logo-z)" />
+  <circle cx="48.5" cy="15.5" r="3" fill="#22D3EE" fill-opacity="0.9" />
+  <circle cx="16" cy="48" r="2.5" fill="#FB7185" fill-opacity="0.85" />
+  <defs>
+    <linearGradient id="logo-bg" x1="5" y1="4" x2="59" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#05070D" /><stop offset="0.55" stop-color="#11142A" /><stop offset="1" stop-color="#220C18" />
+    </linearGradient>
+    <linearGradient id="logo-panel" x1="10" y1="9" x2="54" y2="55" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A0D16" /><stop offset="1" stop-color="#120B12" />
+    </linearGradient>
+    <linearGradient id="logo-stroke" x1="10" y1="8" x2="54" y2="57" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22D3EE" stop-opacity="0.7" /><stop offset="0.52" stop-color="#F97316" stop-opacity="0.5" /><stop offset="1" stop-color="#FB7185" stop-opacity="0.7" />
+    </linearGradient>
+    <linearGradient id="logo-z" x1="20" y1="19" x2="43" y2="45" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FACC15" /><stop offset="0.38" stop-color="#22D3EE" /><stop offset="0.72" stop-color="#A78BFA" /><stop offset="1" stop-color="#FB7185" />
+    </linearGradient>
+  </defs>
+</svg>
+      <span class="brand-name">Zeish <span class="gradient-text">Status</span></span>
+    </div>
+    <a class="repo-link" href="https://github.com/spinupdev/status-page">Source</a>
+  </header>
+
+  <section class="banner down">
+    <span class="dot down"></span>
+    <span>Degraded Performance</span>
+  </section>
+
+  <section class="cards">
+    
+  <div class="card">
+    <div class="card-top">
+      <div class="card-title">
+        <span class="dot down"></span>
+        <span class="name">API Edge</span>
+      </div>
+      <span class="status-label down">Down</span>
+    </div>
+    <div class="card-meta">
+      <span>0.00% uptime (90d)</span>
+      <span class="latency">159ms</span>
+    </div>
+    <div class="bars"><span class="bar" style="background:var(--muted)" title="2026-04-12: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-13: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-14: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-15: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-16: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-17: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-18: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-19: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-20: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-21: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-22: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-23: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-24: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-25: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-26: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-27: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-28: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-29: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-30: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-01: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-02: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-03: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-04: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-05: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-06: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-07: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-08: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-09: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-10: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-11: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-12: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-13: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-14: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-15: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-16: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-17: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-18: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-19: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-20: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-21: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-22: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-23: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-24: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-25: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-26: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-27: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-28: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-29: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-30: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-31: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-01: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-02: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-03: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-04: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-05: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-06: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-07: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-08: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-09: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-10: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-11: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-12: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-13: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-14: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-15: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-16: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-17: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-18: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-19: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-20: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-21: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-22: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-23: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-24: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-25: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-26: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-27: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-28: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-29: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-30: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-01: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-02: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-03: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-04: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-05: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-06: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-07: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-08: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-09: no data"></span><span class="bar" style="background:var(--down)" title="2026-07-10: 0.00% uptime (0/1 checks)"></span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-title">
+        <span class="dot down"></span>
+        <span class="name">Arin</span>
+      </div>
+      <span class="status-label down">Down</span>
+    </div>
+    <div class="card-meta">
+      <span>0.00% uptime (90d)</span>
+      <span class="latency">92ms</span>
+    </div>
+    <div class="bars"><span class="bar" style="background:var(--muted)" title="2026-04-12: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-13: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-14: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-15: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-16: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-17: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-18: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-19: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-20: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-21: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-22: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-23: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-24: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-25: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-26: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-27: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-28: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-29: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-30: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-01: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-02: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-03: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-04: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-05: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-06: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-07: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-08: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-09: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-10: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-11: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-12: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-13: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-14: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-15: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-16: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-17: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-18: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-19: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-20: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-21: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-22: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-23: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-24: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-25: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-26: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-27: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-28: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-29: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-30: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-31: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-01: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-02: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-03: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-04: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-05: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-06: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-07: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-08: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-09: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-10: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-11: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-12: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-13: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-14: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-15: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-16: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-17: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-18: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-19: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-20: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-21: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-22: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-23: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-24: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-25: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-26: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-27: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-28: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-29: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-30: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-01: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-02: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-03: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-04: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-05: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-06: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-07: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-08: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-09: no data"></span><span class="bar" style="background:var(--down)" title="2026-07-10: 0.00% uptime (0/1 checks)"></span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <div class="card-title">
+        <span class="dot up"></span>
+        <span class="name">Zeish</span>
+      </div>
+      <span class="status-label up">Operational</span>
+    </div>
+    <div class="card-meta">
+      <span>100.00% uptime (90d)</span>
+      <span class="latency">44ms</span>
+    </div>
+    <div class="bars"><span class="bar" style="background:var(--muted)" title="2026-04-12: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-13: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-14: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-15: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-16: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-17: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-18: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-19: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-20: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-21: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-22: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-23: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-24: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-25: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-26: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-27: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-28: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-29: no data"></span><span class="bar" style="background:var(--muted)" title="2026-04-30: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-01: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-02: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-03: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-04: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-05: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-06: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-07: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-08: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-09: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-10: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-11: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-12: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-13: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-14: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-15: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-16: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-17: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-18: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-19: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-20: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-21: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-22: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-23: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-24: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-25: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-26: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-27: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-28: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-29: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-30: no data"></span><span class="bar" style="background:var(--muted)" title="2026-05-31: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-01: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-02: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-03: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-04: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-05: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-06: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-07: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-08: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-09: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-10: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-11: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-12: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-13: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-14: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-15: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-16: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-17: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-18: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-19: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-20: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-21: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-22: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-23: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-24: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-25: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-26: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-27: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-28: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-29: no data"></span><span class="bar" style="background:var(--muted)" title="2026-06-30: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-01: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-02: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-03: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-04: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-05: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-06: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-07: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-08: no data"></span><span class="bar" style="background:var(--muted)" title="2026-07-09: no data"></span><span class="bar" style="background:var(--ok)" title="2026-07-10: 100.00% uptime (1/1 checks)"></span></div>
+  </div>
+  </section>
+
+  <section class="incidents-section">
+    <h2>Incident History</h2>
+    <div class="incidents">
+      
+    <div class="incident">
+      <span class="dot down live"></span>
+      <div class="incident-body">
+        <div class="incident-title">API Edge — Ongoing outage</div>
+        <div class="incident-time">2026-07-10 20:17 UTC</div>
+      </div>
+    </div>
+    <div class="incident">
+      <span class="dot down live"></span>
+      <div class="incident-body">
+        <div class="incident-title">Arin — Ongoing outage</div>
+        <div class="incident-time">2026-07-10 20:17 UTC</div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span>Checked every minute via GitHub Actions</span>
+    <span>Last updated 2026-07-10 20:17 UTC</span>
+  </footer>
+</main>
+</body>
+</html>
