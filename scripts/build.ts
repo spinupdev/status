@@ -62,11 +62,6 @@ function latestPing(pings: Ping[]): Ping | null {
   return pings.length ? pings[pings.length - 1]! : null;
 }
 
-const KIND_LABEL: Record<Service["kind"], string> = {
-  frontend: "Frontend",
-  backend: "Backend",
-};
-
 async function buildServiceCard(service: Service): Promise<{ html: string; up: boolean | null }> {
   const dir = path.join(DATA_DIR, service.slug);
   const pings = await readJson<Ping[]>(path.join(dir, "pings.json"), []);
@@ -84,7 +79,6 @@ async function buildServiceCard(service: Service): Promise<{ html: string; up: b
       <div class="card-title">
         <span class="dot ${statusClass}"></span>
         <span class="name">${esc(service.name)}</span>
-        <span class="kind-badge">${KIND_LABEL[service.kind]}</span>
       </div>
       <span class="status-label ${statusClass}">${statusLabel}</span>
     </div>
@@ -274,14 +268,6 @@ main {
 .card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
 .card-title { display: flex; align-items: center; gap: 0.55rem; }
 .name { font-weight: 600; font-size: 0.95rem; }
-.kind-badge {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--muted-foreground);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0.1rem 0.55rem;
-}
 .status-label { font-size: 0.8rem; font-weight: 600; }
 .status-label.up { color: var(--ok); }
 .status-label.down { color: var(--down); }

@@ -1,21 +1,14 @@
 [
   {
-    "slug": "zeish-frontend",
-    "name": "Zeish Frontend",
-    "product": "zeish",
-    "kind": "frontend",
-    "url": "https://zeish.dvito.cloud"
-  },
-  {
-    "slug": "zeish-backend",
-    "name": "Zeish Backend",
+    "slug": "zeish",
+    "name": "Zeish",
     "product": "zeish",
     "kind": "backend",
     "url": "https://api-edge.dvito.cloud"
   },
   {
-    "slug": "arin-frontend",
-    "name": "Arin Frontend",
+    "slug": "arin",
+    "name": "Arin",
     "product": "arin",
     "kind": "frontend",
     "url": "https://arin.dvito.cloud"
