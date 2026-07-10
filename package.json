@@ -1,0 +1,12 @@
+{
+  "name": "zeish-status-page",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node scripts/healthcheck.mjs",
+    "build": "node scripts/build.mjs"
+  }
+}

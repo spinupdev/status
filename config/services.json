@@ -1,0 +1,5 @@
+[
+  { "slug": "api-edge", "name": "API Edge", "url": "https://api-edge.dvito.cloud" },
+  { "slug": "arin", "name": "Arin", "url": "https://arin.dvito.cloud" },
+  { "slug": "zeish", "name": "Zeish", "url": "https://zeish.dvito.cloud" }
+]

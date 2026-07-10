@@ -1,0 +1,49 @@
+name: Health Check
+
+on:
+  schedule:
+    # GitHub's scheduler floor is 5 minutes — the job loops internally
+    # to produce a real check every 1 minute (see the run step below).
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: healthcheck
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run checks every minute, 5 times, committing after each
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for i in 1 2 3 4 5; do
+            echo "::group::Check $i/5"
+            node scripts/healthcheck.mjs
+            node scripts/build.mjs
+            echo "::endgroup::"
+
+            git add data docs
+            if ! git diff --cached --quiet; then
+              git commit -m "chore: healthcheck update $(date -u +%FT%TZ)" -q
+              git pull --rebase --autostash -q || true
+              git push -q
+            fi
+
+            if [ "$i" -lt 5 ]; then
+              sleep 55
+            fi
+          done
