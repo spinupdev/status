@@ -1,1 +1,1 @@
-{"t":"2026-07-11T11:36:45.069Z","results":{"zeish":{"ok":true,"status":404,"ms":464},"arin":{"ok":false,"status":500,"ms":594}}}
+{"t":"2026-07-11T11:37:42.440Z","results":{"zeish":{"ok":true,"status":404,"ms":200},"arin":{"ok":false,"status":500,"ms":317}}}
