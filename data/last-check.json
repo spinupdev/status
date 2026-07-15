@@ -1,1 +1,1 @@
-{"t":"2026-07-15T00:02:18.506Z","results":{"zeish":{"ok":true,"status":404,"ms":390},"arin":{"ok":false,"status":0,"ms":34,"error":"fetch failed"}}}
+{"t":"2026-07-15T00:03:25.175Z","results":{"zeish":{"ok":true,"status":404,"ms":401},"arin":{"ok":false,"status":0,"ms":18,"error":"fetch failed"}}}
