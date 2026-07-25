@@ -4,7 +4,7 @@
     "name": "Zeish",
     "product": "zeish",
     "kind": "backend",
-    "url": "https://api-edge.dvito.cloud"
+    "url": "https://api-edge.dvito.cloud/api/v1"
   },
   {
     "slug": "arin",
